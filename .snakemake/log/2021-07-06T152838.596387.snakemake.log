@@ -1,0 +1,4 @@
+Building DAG of jobs...
+MissingInputException in line 33 of /home/jovyan/GW_Models/Snakefile:
+Missing input files for rule create_catchment_dictionaries:
+out_CoastalCT_ext/GFv1.1.gdb

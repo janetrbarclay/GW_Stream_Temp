@@ -1,0 +1,23 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1 (use --cores to define parallelism)
+Rules claiming more threads will be scaled down.
+Job stats:
+job             count    min threads    max threads
+------------  -------  -------------  -------------
+get_NHM_data        1              1              1
+total               1              1              1
+
+
+[Tue Jul  6 15:57:17 2021]
+rule get_NHM_data:
+    output: out_CoastalCT_ext/GFv1.1.gdb
+    jobid: 0
+    resources: tmpdir=/tmp
+
+Removing output files of failed job get_NHM_data since they might be corrupted:
+out_CoastalCT_ext/GFv1.1.gdb
+Skipped removing non-empty directory out_CoastalCT_ext/GFv1.1.gdb
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: /home/jovyan/GW_Models/.snakemake/log/2021-07-06T155716.013428.snakemake.log

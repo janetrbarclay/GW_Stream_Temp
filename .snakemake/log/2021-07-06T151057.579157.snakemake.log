@@ -1,0 +1,3 @@
+TypeError in line 54 of /home/jovyan/GW_Models/Snakefile:
+unsupported operand type(s) for /: 'set' and 'str'
+  File "/home/jovyan/GW_Models/Snakefile", line 54, in <module>

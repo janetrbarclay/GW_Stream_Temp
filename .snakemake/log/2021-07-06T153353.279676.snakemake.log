@@ -1,0 +1,3 @@
+ImportError in line 4 of /home/jovyan/GW_Models/Snakefile:
+cannot import name 'compile_catchment'
+  File "/home/jovyan/GW_Models/Snakefile", line 4, in <module>

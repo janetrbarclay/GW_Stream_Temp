@@ -1,0 +1,4 @@
+Building DAG of jobs...
+WildcardError in line 11 of /home/jovyan/GW_Models/Snakefile:
+Wildcards in input files cannot be determined from output files:
+'outDir'

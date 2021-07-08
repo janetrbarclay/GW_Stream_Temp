@@ -1,0 +1,3 @@
+SyntaxError in line 174 of /home/jovyan/GW_Models/Code/preprocess_data.py:
+invalid syntax (preprocess_data.py, line 174)
+  File "/home/jovyan/GW_Models/Snakefile", line 4, in <module>

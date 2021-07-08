@@ -1,0 +1,34 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1 (use --cores to define parallelism)
+Rules claiming more threads will be scaled down.
+Job stats:
+job                              count    min threads    max threads
+-----------------------------  -------  -------------  -------------
+all                                  1              1              1
+compile_discharge                    1              1              1
+create_catchment_dictionaries        1              1              1
+get_NHM_data                         1              1              1
+get_model_outputs                    1              1              1
+total                                5              1              1
+
+
+[Tue Jul  6 15:41:56 2021]
+rule get_model_outputs:
+    output: out_CoastalCT_ext/Model_Outputs.csv
+    jobid: 2
+    resources: tmpdir=/tmp
+
+[Tue Jul  6 15:41:59 2021]
+Finished job 2.
+1 of 5 steps (20%) done
+
+[Tue Jul  6 15:41:59 2021]
+rule get_NHM_data:
+    output: out_CoastalCT_ext/GFv1.1.gdb
+    jobid: 4
+    resources: tmpdir=/tmp
+
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: /home/jovyan/GW_Models/.snakemake/log/2021-07-06T154155.024185.snakemake.log

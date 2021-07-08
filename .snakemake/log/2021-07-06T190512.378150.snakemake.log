@@ -1,0 +1,5 @@
+Building DAG of jobs...
+MissingInputException in line 43 of /home/jovyan/GW_Models/Snakefile:
+Missing input files for rule compile_discharge:
+out_CoastalCT_ext/upstream_catch_dict.json
+out_CoastalCT_ext/local_catch_dict.json

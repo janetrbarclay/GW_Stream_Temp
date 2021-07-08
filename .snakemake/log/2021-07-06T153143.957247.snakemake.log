@@ -1,0 +1,4 @@
+NameError in line 4 of /home/jovyan/GW_Models/Snakefile:
+name 'resultsAgg' is not defined
+  File "/home/jovyan/GW_Models/Snakefile", line 4, in <module>
+  File "/home/jovyan/GW_Models/Code/preprocess_data.py", line 200, in <module>
