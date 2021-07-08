@@ -16,11 +16,12 @@ from copy import deepcopy
 
   
 
-def make_model_shapefile(modelpth="./", thisModelName="MONTAGUE_drb1.04_mf6_250", out_file ="MONTAGUE_drb1.04_mf6_250_grid.shp", rasterPath = None):
+def make_model_shapefile(modelpth="./", thisModelName="MONTAGUE_drb1.04_mf6_250", flow_model_name = "MONTAGUE_drb1.04_mf6_250", out_file ="MONTAGUE_drb1.04_mf6_250_grid.shp", rasterPath = None):
     """
     creates a shapefile of a groundwater model grid
     :param modelpth: [str] file path to model files
     :param thisModelName: [str] base name of the model files
+    :param flow_model_name: [str] name of the groundwater flow model within the modflow simulation
     :param out_file: [str] name of the resulting shapefile
     :param rasterPath: [str] path to a geotif file that can be used for geolocating the model shapefile
     """
@@ -45,7 +46,7 @@ def make_model_shapefile(modelpth="./", thisModelName="MONTAGUE_drb1.04_mf6_250"
         ml = fp.modflow.Modflow.load(nam_file, version='mfnwt', exe_name=mfpth,  verbose=False, model_ws=modelpth, load_only=None)
     elif mf_version=="mf6":
         sim = fp.mf6.MFSimulation.load(thisModelName, version='mf6', exe_name=mfpth, sim_ws=modelpth)
-        ml = sim.get_model(thisModelName)
+        ml = sim.get_model(flow_model_name) 
         
     #get the spatial reference if needed
     if ml.modelgrid.xoffset==0.0 and rasterPath is not None:

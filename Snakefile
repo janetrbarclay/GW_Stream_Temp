@@ -3,10 +3,11 @@ import os
 from gw_stream_temp.fetch_data import get_NHM_gis_data
 from gw_stream_temp.preprocess_data import compile_catchment_discharge, get_catchment_nodes, compile_model_outputs, make_model_shapefile
 
-modelName = "CoastalCT_ext"
-modelDir = "data_model_CoastalCT_ext/layers_GHB_sea_septic_DRN0_mf6_SFR_PEST_layerCOF"
+modelName = "MONTAGUE_drb1.04_mf6_250"
+flowModelName = "drb1.04"
+modelDir = "/home/jbarclay/GW_Models/DRB/MONTAGUE/model/MONTAGUE_drb1.04_mf6_250_SY05"
 outDir = "out_{}".format(modelName)
-rasterPath = '{}/ibound.tif'.format(modelDir)
+rasterPath = '{}/MONTAGUE_250_idomain.tif'.format(modelDir)
 
 rule all:
     input:
@@ -14,15 +15,15 @@ rule all:
         
 rule get_NHM_data:
     output:
-        directory('{}/GFv1.1.gdb'.format(outDir))
+        directory('data_NHM/GFv1.1.gdb')
     run:
-        get_NHM_gis_data(item='5e29d1a0e4b0a79317cf7f63',filenameLst=['GFv1.1.gdb.zip'], destination=outDir)
+        get_NHM_gis_data(item='5e29d1a0e4b0a79317cf7f63',filenameLst=['GFv1.1.gdb.zip'], destination='data_NHM')
         
 rule make_model_shapefile:
     output:
         '{}/modelGrid.shp'.format(outDir)
     run:
-        make_model_shapefile(modelDir,modelName, output[0], rasterPath)
+        make_model_shapefile(modelDir,modelName, flowModelName, output[0], rasterPath)
         
 rule get_model_outputs:
     output:
@@ -32,7 +33,7 @@ rule get_model_outputs:
         
 rule create_catchment_dictionaries:
     input:
-        '{}/GFv1.1.gdb'.format(outDir),
+        'data_NHM/GFv1.1.gdb',
         '{}/modelGrid.shp'.format(outDir),
     output:
         '{}/local_catch_dict.npy'.format(outDir),

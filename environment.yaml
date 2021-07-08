@@ -1,0 +1,25 @@
+name: mf_rgcn
+channels:
+    - conda-forge
+    - defaults
+    - bioconda
+dependencies:
+    - dask
+    - ipython
+    - matplotlib
+    - pandas
+    - geopandas
+    - flopy
+    - pyshp
+    - gdal
+    - pip
+    - pyarrow
+    - scikit-learn
+    - snakemake
+    - tensorflow = 2.1.0
+    - tensorflow-gpu = 2.1.0
+    - tensorflow-estimator = 2.1.0
+    - xarray
+    - zarr
+    - pip:
+        - sciencebasepy

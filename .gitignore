@@ -1,3 +1,7 @@
 out*
 data*
 .ipynb_checkpoints*
+.snakemake
+*.slurm
+*_pycache_*
+*.out
