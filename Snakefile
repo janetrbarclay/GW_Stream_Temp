@@ -1,17 +1,30 @@
-import os
+import os, sys
+import pandas as pd
+
+sys.path.append("../river-dl")
 
 from gw_stream_temp.fetch_data import get_NHM_gis_data
 from gw_stream_temp.preprocess_data import compile_catchment_discharge, get_catchment_nodes, compile_model_outputs, make_model_shapefile
+from river_dl.preproc_utils import prep_data
+from river_dl.evaluate import combined_metrics
+from river_dl.postproc_utils import plot_obs
+from river_dl.predict import predict_from_io_data
+from river_dl.train import train_model
+from river_dl import loss_functions as lf
+from river_dl.gw_utils import prep_annual_signal_data, calc_pred_ann_temp,calc_gw_metrics
 
-modelName = "MONTAGUE_drb1.04_mf6_250"
-flowModelName = "drb1.04"
-modelDir = "/home/jbarclay/GW_Models/DRB/MONTAGUE/model/MONTAGUE_drb1.04_mf6_250_SY05"
-outDir = "out_{}".format(modelName)
-rasterPath = '{}/MONTAGUE_250_idomain.tif'.format(modelDir)
+
+
+modelName = config["modelName"]
+flowModelName = config["flowModelName"]
+
+modelDir = config['modelDir']
+outDir = config['outDir']
+rasterPath = config['rasterPath']
 
 rule all:
     input:
-        "{}/CatchmentDischarge.csv".format(outDir)
+        "{}/prepped.npz".format(outDir)
         
 rule get_NHM_data:
     output:
@@ -50,3 +63,32 @@ rule compile_discharge:
         '{}/CatchmentDischarge.csv'.format(outDir)
     run:
         compile_catchment_discharge(input[0],input[1],input[2],output[0])
+        
+def get_segment_list(file_in, seg_col="seg_id_nat"):
+    gwDF = pd.read(file_in)
+    seg_list = [x for x in gwDF[seg_col]]
+    return seg_list
+        
+rule prep_io_data:
+    input:
+         config['obs_temp'],
+         config['obs_flow'],
+         config['sntemp_file'],
+         config['dist_matrix'],
+         get_segment_list('{}/CatchmentDischarge.csv'.format(outDir))
+    output:
+        "{outdir}/prepped.npz"
+    run:
+        prep_data(input[0], input[1], input[2], input[3],
+                  x_vars=config['x_vars'],
+                  catch_prop_file=None,
+                  exclude_file=None,
+                  train_start_date=config['train_start_date'],
+                  train_end_date=config['train_end_date'],
+                  val_start_date=config['val_start_date'],
+                  val_end_date=config['val_end_date'],
+                  test_start_date=config['test_start_date'],
+                  test_end_date=config['test_end_date'],
+                  primary_variable=config['primary_variable'],
+                  log_q=False, segs=input[4],
+                  out_file=output[0])
