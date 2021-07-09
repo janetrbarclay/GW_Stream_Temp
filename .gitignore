@@ -1,6 +1,6 @@
 out*
 data*
-.ipynb_checkpoints*
+*.ipynb_*
 .snakemake
 *.slurm
 *_pycache_*
