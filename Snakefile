@@ -1,5 +1,6 @@
 import os, sys
 import pandas as pd
+import xarray as xr
 
 sys.path.append("../river-dl")
 
@@ -64,18 +65,20 @@ rule compile_discharge:
     run:
         compile_catchment_discharge(input[0],input[1],input[2],output[0])
         
-def get_segment_list(file_in, seg_col="seg_id_nat"):
-    gwDF = pd.read(file_in)
-    seg_list = [x for x in gwDF[seg_col]]
+def get_segment_list(gw_file_in, pretrain_file_in, seg_col="seg_id_nat"):
+    gwDF = pd.read_csv(gw_file_in)
+    ds_pre = xr.open_zarr(pretrain_file_in)
+    seg_list = [x for x in gwDF[seg_col] if x in ds_pre[seg_col]]
     return seg_list
-        
+
+
 rule prep_io_data:
     input:
          config['obs_temp'],
          config['obs_flow'],
          config['sntemp_file'],
          config['dist_matrix'],
-         get_segment_list('{}/CatchmentDischarge.csv'.format(outDir))
+         '{}/CatchmentDischarge.csv'.format(outDir),
     output:
         "{outdir}/prepped.npz"
     run:
@@ -90,5 +93,5 @@ rule prep_io_data:
                   test_start_date=config['test_start_date'],
                   test_end_date=config['test_end_date'],
                   primary_variable=config['primary_variable'],
-                  log_q=False, segs=input[4],
+                  log_q=False, segs=get_segment_list(input[4],input[2]),
                   out_file=output[0])
