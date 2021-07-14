@@ -1,6 +1,6 @@
 out*
 data*
-*.ipynb_*
+*.ipynb*
 .snakemake
 *.slurm
 *_pycache_*
