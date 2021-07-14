@@ -11,7 +11,7 @@ flowModelName: "drb1.04"
 modelDir: "/home/jbarclay/GW_Models/DRB/MONTAGUE/model/MONTAGUE_drb1.04_mf6_250_SY05"
 rasterPath: '/home/jbarclay/GW_Models/DRB/MONTAGUE/model/MONTAGUE_drb1.04_mf6_250_SY05/MONTAGUE_250_idomain.tif'
 
-outDir: "out_MONTAGUE_drb1.04_mf6_250"
+outDir: "out_MONTAGUE_drb1.04_mf6_250_GW"
 code_dir: "../river-dl/river_dl"
 
 x_vars: ["seg_rain", "seg_tave_air", "seginc_swrad", "seg_length", "seginc_potet", "seg_slope", "seg_humid", "seg_elev"]
@@ -21,11 +21,11 @@ primary_variable: "temp"
 lambdas: [1,1]
 
 #lamb2 and lamb3 are hyper params for weighting the rmses of Ar (amplitude ratio) and deltaPhi (phase difference)
-lamb2: 1
-lamb3: 1
+lamb2: 0
+lamb3: 0
 
 #anything other than GW (case insensitive) will use the standard loss function (rmse of temp & rmse of flow)
-loss_type: "noGW"
+loss_type: "GW"
 
 
 train_start_date:
@@ -43,6 +43,6 @@ test_end_date:
   - '1985-09-30'
   - '2021-09-30'
 
-pt_epochs: 10
-ft_epochs: 5
+pt_epochs: 200
+ft_epochs: 100
 hidden_size: 20
