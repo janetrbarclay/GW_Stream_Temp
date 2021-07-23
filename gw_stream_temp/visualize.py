@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-def plot_by_perlocal(reachDischargeFile, reachMetricsFile,gwDataFile, figFile):
+def plot_by_perlocal(reachDischargeFile, reachMetricsFile,gwDataFile, figFile, plotCol='Per_Local', axisTitle="Percent of baseflow discharged locally"):
     dischargeDF = pd.read_csv(reachDischargeFile)
     metricsDF = pd.read_csv(reachMetricsFile)
     gwData = np.load(gwDataFile)
@@ -41,33 +41,33 @@ def plot_by_perlocal(reachDischargeFile, reachMetricsFile,gwDataFile, figFile):
             colorDict = {"Atmosphere":"red","Shallow":"green","Deep":"blue", "Unknown":"gray"}
             for thisGroup in np.unique(thisData['group'])[::-1]:
                 thisColor = colorDict[thisGroup]
-                ax.scatter(x=thisData.loc[thisData.group==thisGroup,'Per_Local'],y=thisData.loc[thisData.group==thisGroup,"rmse"],label="RGCN - %s"%thisGroup,color=thisColor)
+                ax.scatter(x=thisData.loc[thisData.group==thisGroup,plotCol],y=thisData.loc[thisData.group==thisGroup,"rmse"],label="RGCN - %s"%thisGroup,color=thisColor)
 
     #                ax.scatter(x=thisData['{}_obs'.format(thisMetric)],y=thisData['{}_sntemp'.format(thisMetric)],label="SNTEMP",color="red")
     #         for i, label in enumerate(thisData.seg_id_nat):
     #             ax.annotate(int(label), (thisData.loc[thisData.group==thisGroup,'Per_Local'][i],thisData.loc[thisData.group==thisGroup,"rmse"][i]))
             if thisFig==1:
                       ax.legend()
-            ax.set_xlabel("Percent of baseflow discharged locally")
+            ax.set_xlabel(axisTitle)
             ax.set_ylabel("RMSE, in degrees C")
 
 
 
             thisFig = thisFig + 1
             #colsToPlot = ['{}_obs'.format(thisMetric),'{}_pbm'.format(thisMetric),'{}_pred'.format(thisMetric)]
-            nObs =["n: " + str(np.sum(np.isfinite(thisData.loc[thisData.group==x,"Per_Local"].values))) for x in np.unique(thisData.group)]
+            nObs =["n: " + str(np.sum(np.isfinite(thisData.loc[thisData.group==x,plotCol].values))) for x in np.unique(thisData.group)]
             ax = fig.add_subplot(len(np.unique(dischargeDF.partition)), 2, thisFig)
-            ax.set_title('Percent of Baseflow Discharged Locally, {}'.format(thisPart))
-            ax=sns.boxplot(x='group',y="Per_Local", data=thisData, order=np.unique(thisData.group), palette=colorDict)
+            ax.set_title('{}, {}'.format(axisTitle,thisPart))
+            ax=sns.boxplot(x='group',y=plotCol, data=thisData, order=np.unique(thisData.group), palette=colorDict)
             # Add it to the plot
             pos = range(len(nObs))
             for tick,label in zip(pos,ax.get_xticklabels()):
                 ax.text(pos[tick],
-                        np.nanmin(thisData["Per_Local"].values)-0.1*(np.nanmax(thisData["Per_Local"].values)-np.nanmin(thisData["Per_Local"].values)),
+                        np.nanmin(thisData[plotCol].values)-0.1*(np.nanmax(thisData[plotCol].values)-np.nanmin(thisData[plotCol].values)),
                         nObs[tick],
                         horizontalalignment='center',
                         weight='semibold')
-            ax.set_ylim(np.nanmin(thisData["Per_Local"].values)-0.2*(np.nanmax(thisData["Per_Local"].values)-np.nanmin(thisData["Per_Local"].values)),np.nanmax(thisData["Per_Local"].values))
+            ax.set_ylim(np.nanmin(thisData[plotCol].values)-0.2*(np.nanmax(thisData[plotCol].values)-np.nanmin(thisData[plotCol].values)),np.nanmax(thisData[plotCol].values))
 
 
     plt.savefig(figFile)

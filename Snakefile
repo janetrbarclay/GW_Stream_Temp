@@ -15,18 +15,37 @@ from river_dl.train import train_model
 from river_dl import loss_functions as lf
 from river_dl.gw_utils import prep_annual_signal_data, calc_pred_ann_temp,calc_gw_metrics
 
-
-
 modelName = config["modelName"]
 flowModelName = config["flowModelName"]
 
 modelDir = config['modelDir']
-outDir = config['outDir']
+outDir = config['out_dir']
 rasterPath = config['rasterPath']
 
 loss_function = lf.multitask_rmse(config['lambdas'])
 
-rule all:
+module other_workflow:
+    snakefile: "../river-dl/Snakefile"
+    config: config
+       
+use rule * from other_workflow as other_*
+
+#this allows us to import all the rules from Snakefile but write a custom train_model_local_or_cpu rule
+use rule train_model_local_or_cpu from other_workflow as other_train_model_local_or_cpu with:
+    output:
+        ""
+use rule prep_io_data from other_workflow as other_prep_io_data with:
+    output:
+        ""
+use rule prep_ann_temp from other_workflow as other_prep_ann_temp with:
+    output:
+        ""
+use rule plot_prepped_data from other_workflow as other_plot_prepped_data with:
+    output:
+        ""
+        
+#modify rule all to include the additional gw output files        
+use rule all from other_workflow as other_all with:
     input:
         expand("{outdir}/GW_summary.csv",outdir=outDir),
         expand("{outdir}/GW_stats_{partition}.csv",
@@ -37,8 +56,8 @@ rule all:
                 outdir=outDir,
                 metric_type=['overall', 'month', 'reach', 'month_reach'],
         ),
-        expand("{outdir}/LocalDischarge.png", outdir=outDir)
-        
+        expand("{outdir}/GW_{model_metric}.png", outdir=outDir, model_metric=['Per_Local','q_total','q_std'])
+ 
 rule get_NHM_data:
     output:
         directory('data_NHM/GFv1.1.gdb')
@@ -168,88 +187,7 @@ rule train_model_local_or_cpu:
                     loss_func=loss_function, out_dir=params.run_dir, model_type='rgcn', num_tasks=2, loss_type=config['loss_type'], lamb2=config['lamb2'],lamb3=config['lamb3'])
 
 
-rule make_predictions:
-    input:
-        "{outdir}/trained_weights/",
-        "{outdir}/prepped.npz"
-    output:
-        "{outdir}/{partition}_preds.feather",
-    group: 'train_predict_evaluate'
-    run:
-        model_dir = input[0] + '/'
-        predict_from_io_data(model_type='rgcn', model_weights_dir=model_dir,
-                             hidden_size=config['hidden_size'], io_data=input[1],
-                             partition=wildcards.partition, outfile=output[0],
-                             logged_q=False, num_tasks=2)
-                             
-        
-                             
 
-def get_grp_arg(wildcards):
-    if wildcards.metric_type == 'overall':
-        return None
-    elif wildcards.metric_type == 'month':
-        return 'month'
-    elif wildcards.metric_type == 'reach':
-        return 'seg_id_nat'
-    elif wildcards.metric_type == 'month_reach':
-        return ['seg_id_nat', 'month']
-
-
-rule combine_metrics:
-    input:
-         config['obs_temp'],
-         config['obs_flow'],
-         "{outdir}/trn_preds.feather",
-         "{outdir}/val_preds.feather"
-    output:
-         "{outdir}/{metric_type}_metrics.csv"
-    group: 'train_predict_evaluate'
-    params:
-        grp_arg = get_grp_arg
-    run:
-        combined_metrics(obs_temp=input[0],
-                         obs_flow=input[1],
-                         pred_trn=input[2],
-                         pred_val=input[3],
-                         group=params.grp_arg,
-                         outfile=output[0])
-
-                         
-rule plot_prepped_data:
-    input:
-        "{outdir}/prepped.npz",
-    output:
-        "{outdir}/{variable}_{partition}.png",
-    run:
-        plot_obs(input[0], wildcards.variable, output[0],
-                 partition=wildcards.partition)
-
-                 
-rule compile_pred_GW_stats:
-    input:
-        "{outdir}/prepped_withGW.npz",
-        "{outdir}/trn_preds.feather",
-        "{outdir}/tst_preds.feather",
-        "{outdir}/val_preds.feather"
-    output:
-        "{outdir}/GW_stats_trn.csv",
-        "{outdir}/GW_stats_tst.csv",
-        "{outdir}/GW_stats_val.csv",
-    run: 
-        calc_pred_ann_temp(input[0],input[1],input[2], input[3], output[0], output[1], output[2])
-        
-rule calc_gw_summary_metrics:
-    input:
-        "{outdir}/GW_stats_trn.csv",
-        "{outdir}/GW_stats_tst.csv",
-        "{outdir}/GW_stats_val.csv",
-    output:
-        "{outdir}/GW_summary.csv",
-        "{outdir}/GW_scatter.png",
-        "{outdir}/GW_boxplot.png",
-    run:
-        calc_gw_metrics(input[0],input[1],input[2],output[0], output[1], output[2])
  
 rule plot_discharge:
     input:
@@ -257,6 +195,6 @@ rule plot_discharge:
         "{outdir}/reach_metrics.csv",
         "{outdir}/prepped_withGW.npz",
     output:
-        "{outdir}/LocalDischarge.png"
+        "{outdir}/GW_{model_metric}.png"
     run:
-        plot_by_perlocal(input[0],input[1],input[2],output[0])
+        plot_by_perlocal(input[0],input[1],input[2],output[0], plotCol = variable.model_metric, axisTitle=variable.model_metric)

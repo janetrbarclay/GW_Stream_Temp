@@ -152,6 +152,11 @@ def compile_model_outputs(modelpth="./", thisModelName="MONTAGUE_drb1.04_mf6_250
     #aggregate the results by type and then overall
     resultsAgg = resultsDF[['node','q','record']].groupby(by=['record','node'],as_index=False).mean().groupby(by='node',as_index=False).sum()
     
+    #also get the month-to-month variation in q
+    resultsAggSTD = resultsDF[['node','q','per']].groupby(by=['per','node'],as_index=False).sum()[['node','q']].groupby(by="node",as_index=False).std().rename(columns={'q':'q_std'})
+    
+    resultsAgg=resultsAgg.merge(resultsAggSTD)
+    
     resultsAgg.to_csv(out_file)
 
 def get_catchment_nodes(NHM_gdb=r'C:\Users\jbarclay\OneDrive - DOI\StreamTemp\Analysis\Data\GFv1.1.gdb',model_shapefile="modelshapefile.shp", model_epsg=None, local_out_file = 'localCatchDict.npy', upstream_out_file = 'upstreamCatchDict.npy'):
@@ -246,8 +251,8 @@ def compile_catchment_discharge(node_discharge_file="resultsAgg.csv", catchDictF
     catchDict = np.load(catchDictFile, allow_pickle=True)[()]
     upStreamDict = np.load(upStreamDictFile, allow_pickle=True)[()]
     
-    localDis = [(x,np.sum(node_discharge.loc[node_discharge.node.isin(catchDict[x]),"q"])) for x in catchDict.keys()if x !=0]
-    dischargeDF = pd.DataFrame(localDis,columns=['seg_id_nat','q_local'])
+    localDis = [(x,np.sum(node_discharge.loc[node_discharge.node.isin(catchDict[x]),"q"]),np.mean(node_discharge.loc[node_discharge.node.isin(catchDict[x]),"q_std"])) for x in catchDict.keys()if x !=0]
+    dischargeDF = pd.DataFrame(localDis,columns=['seg_id_nat','q_local','q_std'])
     dischargeDF['q_all']=[np.sum(dischargeDF.q_local.loc[dischargeDF.seg_id_nat.isin(upStreamDict[x])]) for x in dischargeDF.seg_id_nat]
     dischargeDF['Per_Local']=dischargeDF['q_local']/dischargeDF['q_all']*100
     

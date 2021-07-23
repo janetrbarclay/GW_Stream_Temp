@@ -11,7 +11,7 @@ flowModelName: "drb1.04"
 modelDir: "/home/jbarclay/GW_Models/DRB/MONTAGUE/model/MONTAGUE_drb1.04_mf6_250_SY05"
 rasterPath: '/home/jbarclay/GW_Models/DRB/MONTAGUE/model/MONTAGUE_drb1.04_mf6_250_SY05/MONTAGUE_250_idomain.tif'
 
-outDir: "out_MONTAGUE_drb1.04_mf6_250_GW"
+out_dir: "out_MONTAGUE_drb1.04_mf6_250_noGW"
 code_dir: "../river-dl/river_dl"
 
 x_vars: ["seg_rain", "seg_tave_air", "seginc_swrad", "seg_length", "seginc_potet", "seg_slope", "seg_humid", "seg_elev"]
@@ -25,7 +25,7 @@ lamb2: 0
 lamb3: 0
 
 #anything other than GW (case insensitive) will use the standard loss function (rmse of temp & rmse of flow)
-loss_type: "GW"
+loss_type: "noGW"
 
 
 train_start_date:
