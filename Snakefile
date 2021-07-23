@@ -198,3 +198,28 @@ rule plot_discharge:
         "{outdir}/GW_{model_metric}.png"
     run:
         plot_by_perlocal(input[0],input[1],input[2],output[0], plotCol = variable.model_metric, axisTitle=variable.model_metric)
+        
+rule compile_pred_GW_stats:
+    input:
+        "{outdir}/prepped_withGW.npz",
+        "{outdir}/trn_preds.feather",
+        "{outdir}/tst_preds.feather",
+        "{outdir}/val_preds.feather"
+    output:
+        "{outdir}/GW_stats_trn.csv",
+        "{outdir}/GW_stats_tst.csv",
+        "{outdir}/GW_stats_val.csv",
+    run: 
+        calc_pred_ann_temp(input[0],input[1],input[2], input[3], output[0], output[1], output[2])
+        
+rule calc_gw_summary_metrics:
+    input:
+        "{outdir}/GW_stats_trn.csv",
+        "{outdir}/GW_stats_tst.csv",
+        "{outdir}/GW_stats_val.csv",
+    output:
+        "{outdir}/GW_summary.csv",
+        "{outdir}/GW_scatter.png",
+        "{outdir}/GW_boxplot.png",
+    run:
+        calc_gw_metrics(input[0],input[1],input[2],output[0], output[1], output[2])
