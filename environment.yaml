@@ -13,6 +13,7 @@ dependencies:
     - pyshp
     - gdal
     - pip
+    - python=3.6
     - pyarrow
     - scikit-learn
     - seaborn

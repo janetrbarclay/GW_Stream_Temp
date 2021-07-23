@@ -56,7 +56,7 @@ use rule all from other_workflow as other_all with:
                 outdir=outDir,
                 metric_type=['overall', 'month', 'reach', 'month_reach'],
         ),
-        expand("{outdir}/GW_{model_metric}.png", outdir=outDir, model_metric=['Per_Local','q_total','q_std'])
+        expand("{outdir}/GW_{model_metric}.png", outdir=outDir, model_metric=['Per_Local','q_all','q_std'])
  
 rule get_NHM_data:
     output:
@@ -197,7 +197,7 @@ rule plot_discharge:
     output:
         "{outdir}/GW_{model_metric}.png"
     run:
-        plot_by_perlocal(input[0],input[1],input[2],output[0], plotCol = variable.model_metric, axisTitle=variable.model_metric)
+        plot_by_perlocal(input[0],input[1],input[2],output[0], plotCol = wildcards.model_metric, axisTitle=wildcards.model_metric)
         
 rule compile_pred_GW_stats:
     input:
