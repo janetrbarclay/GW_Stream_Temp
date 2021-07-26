@@ -101,7 +101,7 @@ def plot_by_perlocal(reachDischargeFile, reachMetricsFile,gwDataFile, figFile, p
             if thisFig==1:
                       ax.legend()
             ax.set_xlabel(axisTitle)
-            ax.set_ylabel("Ar, dimensionless")
+            ax.set_ylabel("delta Phi, days")
             
             
     plt.savefig(figFile)

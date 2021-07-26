@@ -157,6 +157,9 @@ def compile_model_outputs(modelpth="./", thisModelName="MONTAGUE_drb1.04_mf6_250
     
     resultsAgg=resultsAgg.merge(resultsAggSTD)
     
+    #and normalize the std by the q
+    resultsAgg['q_std_per']=resultsAgg['q_std']/resultsAgg['q']
+    
     resultsAgg.to_csv(out_file)
 
 def get_catchment_nodes(NHM_gdb=r'C:\Users\jbarclay\OneDrive - DOI\StreamTemp\Analysis\Data\GFv1.1.gdb',model_shapefile="modelshapefile.shp", model_epsg=None, local_out_file = 'localCatchDict.npy', upstream_out_file = 'upstreamCatchDict.npy'):

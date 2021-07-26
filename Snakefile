@@ -56,7 +56,7 @@ use rule all from other_workflow as other_all with:
                 outdir=outDir,
                 metric_type=['overall', 'month', 'reach', 'month_reach'],
         ),
-        expand("{outdir}/GW_{model_metric}.png", outdir=outDir, model_metric=['Per_Local','q_all','q_std'])
+        expand("{outdir}/GW_{model_metric}.png", outdir=outDir, model_metric=['Per_Local','q_all','q_std','q_std_per'])
  
 rule get_NHM_data:
     output:
