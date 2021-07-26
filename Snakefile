@@ -5,7 +5,8 @@ import xarray as xr
 sys.path.append("../river-dl")
 
 from gw_stream_temp.fetch_data import get_NHM_gis_data
-from gw_stream_temp.preprocess_data import compile_catchment_discharge, get_catchment_nodes, compile_model_outputs, make_model_shapefile
+from gw_stream_temp.preprocess_modflow_data import compile_catchment_discharge, get_catchment_nodes, compile_model_outputs, make_model_shapefile
+from gw_stream_temp.preprocess_modpath_data import make_modpath_model
 from gw_stream_temp.visualize import plot_by_perlocal
 from river_dl.preproc_utils import prep_data
 from river_dl.evaluate import combined_metrics
@@ -56,7 +57,8 @@ use rule all from other_workflow as other_all with:
                 outdir=outDir,
                 metric_type=['overall', 'month', 'reach', 'month_reach'],
         ),
-        expand("{outdir}/GW_{model_metric}.png", outdir=outDir, model_metric=['Per_Local','q_all','q_std','q_std_per'])
+        expand("{outdir}/GW_{model_metric}.png", outdir=outDir, model_metric=['Per_Local','q_all','q_std','q_std_per']),
+        '{}/{}.mpsim'.format(outDir,flowModelName)
  
 rule get_NHM_data:
     output:
@@ -95,6 +97,13 @@ rule compile_discharge:
         '{}/CatchmentDischarge.csv'.format(outDir)
     run:
         compile_catchment_discharge(input[0],input[1],input[2],output[0])
+        
+rule write_modpath_files:
+    output:
+        '{}/{}.mpsim'.format(outDir,flowModelName)
+    run:
+        make_modpath_model(modelDir, modelName, flowModelName)
+        
         
 def get_segment_list(gw_file_in, pretrain_file_in, seg_col="seg_id_nat"):
     gwDF = pd.read_csv(gw_file_in)

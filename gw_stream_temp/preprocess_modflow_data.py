@@ -14,18 +14,13 @@ from geopandas.tools import sjoin
 import pandas as pd
 from copy import deepcopy
 
-  
-
-def make_model_shapefile(modelpth="./", thisModelName="MONTAGUE_drb1.04_mf6_250", flow_model_name = "MONTAGUE_drb1.04_mf6_250", out_file ="MONTAGUE_drb1.04_mf6_250_grid.shp", rasterPath = None):
+def load_modflow_model(modelpth="./", thisModelName="MONTAGUE_drb1.04_mf6_250", flow_model_name = "MONTAGUE_drb1.04_mf6_250"):
     """
-    creates a shapefile of a groundwater model grid
+    loads a modflow groundwater model
     :param modelpth: [str] file path to model files
     :param thisModelName: [str] base name of the model files
     :param flow_model_name: [str] name of the groundwater flow model within the modflow simulation
-    :param out_file: [str] name of the resulting shapefile
-    :param rasterPath: [str] path to a geotif file that can be used for geolocating the model shapefile
-    """
-    
+    """    
     #################################
     ## get the modflow version
     nam_file = os.path.join(modelpth,'{}.nam'.format(thisModelName))
@@ -47,6 +42,20 @@ def make_model_shapefile(modelpth="./", thisModelName="MONTAGUE_drb1.04_mf6_250"
     elif mf_version=="mf6":
         sim = fp.mf6.MFSimulation.load(thisModelName, version='mf6', exe_name=mfpth, sim_ws=modelpth)
         ml = sim.get_model(flow_model_name)
+        
+    return ml
+
+def make_model_shapefile(modelpth="./", thisModelName="MONTAGUE_drb1.04_mf6_250", flow_model_name = "MONTAGUE_drb1.04_mf6_250", out_file ="MONTAGUE_drb1.04_mf6_250_grid.shp", rasterPath = None):
+    """
+    creates a shapefile of a groundwater model grid
+    :param modelpth: [str] file path to model files
+    :param thisModelName: [str] base name of the model files
+    :param flow_model_name: [str] name of the groundwater flow model within the modflow simulation
+    :param out_file: [str] name of the resulting shapefile
+    :param rasterPath: [str] path to a geotif file that can be used for geolocating the model shapefile
+    """
+    
+    ml = load_modflow_model(modelpth,thisModelName,flow_model_name)
         
     #get the spatial reference if needed
     if ml.modelgrid.xoffset==0.0 and rasterPath is not None:
