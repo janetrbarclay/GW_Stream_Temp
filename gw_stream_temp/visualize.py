@@ -29,7 +29,7 @@ def plot_by_perlocal(reachDischargeFile, reachMetricsFile,gwDataFile, figFile, p
     dischargeDF.replace([np.inf, -np.inf], np.nan, inplace=True)
     dischargeDF.loc[dischargeDF.nse.isnull(),"rmse"]=np.nan
     
-    fig = plt.figure(figsize=(15, 30))
+    fig = plt.figure(figsize=(30, 15))
     thisFig = 0
     for thisPart in np.unique(dischargeDF.partition):
             thisData = dischargeDF.loc[dischargeDF.partition==thisPart]
