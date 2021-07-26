@@ -254,8 +254,8 @@ def compile_catchment_discharge(node_discharge_file="resultsAgg.csv", catchDictF
     catchDict = np.load(catchDictFile, allow_pickle=True)[()]
     upStreamDict = np.load(upStreamDictFile, allow_pickle=True)[()]
     
-    localDis = [(x,np.sum(node_discharge.loc[node_discharge.node.isin(catchDict[x]),"q"]),np.mean(node_discharge.loc[node_discharge.node.isin(catchDict[x]),"q_std"])) for x in catchDict.keys()if x !=0]
-    dischargeDF = pd.DataFrame(localDis,columns=['seg_id_nat','q_local','q_std'])
+    localDis = [(x,np.sum(node_discharge.loc[node_discharge.node.isin(catchDict[x]),"q"]),np.mean(node_discharge.loc[node_discharge.node.isin(catchDict[x]),"q_std"]),np.mean(node_discharge.loc[node_discharge.node.isin(catchDict[x]),"q_std_per"])) for x in catchDict.keys()if x !=0]
+    dischargeDF = pd.DataFrame(localDis,columns=['seg_id_nat','q_local','q_std','q_std_per'])
     dischargeDF['q_all']=[np.sum(dischargeDF.q_local.loc[dischargeDF.seg_id_nat.isin(upStreamDict[x])]) for x in dischargeDF.seg_id_nat]
     dischargeDF['Per_Local']=dischargeDF['q_local']/dischargeDF['q_all']*100
     
