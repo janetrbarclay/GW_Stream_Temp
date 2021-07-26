@@ -29,13 +29,13 @@ def plot_by_perlocal(reachDischargeFile, reachMetricsFile,gwDataFile, figFile, p
     dischargeDF.replace([np.inf, -np.inf], np.nan, inplace=True)
     dischargeDF.loc[dischargeDF.nse.isnull(),"rmse"]=np.nan
     
-    fig = plt.figure(figsize=(15, 15))
+    fig = plt.figure(figsize=(15, 30))
     thisFig = 0
     for thisPart in np.unique(dischargeDF.partition):
             thisData = dischargeDF.loc[dischargeDF.partition==thisPart]
 
             thisFig = thisFig + 1
-            ax = fig.add_subplot(len(np.unique(dischargeDF.partition)), 2, thisFig)
+            ax = fig.add_subplot(len(np.unique(dischargeDF.partition)), 4, thisFig)
             ax.set_title('RMSE versus Simulated Discharge, {}'.format(thisPart))
             #ax.axline((np.nanmean(thisData['{}_pred'.format(thisMetric)]),np.nanmean(thisData['{}_pred'.format(thisMetric)])), slope=1.0,linewidth=1, color='black', label="1 to 1 line")
             colorDict = {"Atmosphere":"red","Shallow":"green","Deep":"blue", "Unknown":"gray"}
@@ -56,7 +56,7 @@ def plot_by_perlocal(reachDischargeFile, reachMetricsFile,gwDataFile, figFile, p
             thisFig = thisFig + 1
             #colsToPlot = ['{}_obs'.format(thisMetric),'{}_pbm'.format(thisMetric),'{}_pred'.format(thisMetric)]
             nObs =["n: " + str(np.sum(np.isfinite(thisData.loc[thisData.group==x,plotCol].values))) for x in np.unique(thisData.group)]
-            ax = fig.add_subplot(len(np.unique(dischargeDF.partition)), 2, thisFig)
+            ax = fig.add_subplot(len(np.unique(dischargeDF.partition)), 4, thisFig)
             ax.set_title('{}, {}'.format(axisTitle,thisPart))
             ax=sns.boxplot(x='group',y=plotCol, data=thisData, order=np.unique(thisData.group), palette=colorDict)
             # Add it to the plot
@@ -69,5 +69,39 @@ def plot_by_perlocal(reachDischargeFile, reachMetricsFile,gwDataFile, figFile, p
                         weight='semibold')
             ax.set_ylim(np.nanmin(thisData[plotCol].values)-0.2*(np.nanmax(thisData[plotCol].values)-np.nanmin(thisData[plotCol].values)),np.nanmax(thisData[plotCol].values))
 
+            thisFig = thisFig + 1
+            ax = fig.add_subplot(len(np.unique(dischargeDF.partition)), 4, thisFig)
+            ax.set_title('Ar versus Simulated Discharge, {}'.format(thisPart))
+            #ax.axline((np.nanmean(thisData['{}_pred'.format(thisMetric)]),np.nanmean(thisData['{}_pred'.format(thisMetric)])), slope=1.0,linewidth=1, color='black', label="1 to 1 line")
+            colorDict = {"Atmosphere":"red","Shallow":"green","Deep":"blue", "Unknown":"gray"}
+            for thisGroup in np.unique(thisData['group'])[::-1]:
+                thisColor = colorDict[thisGroup]
+                ax.scatter(x=thisData.loc[thisData.group==thisGroup,plotCol],y=thisData.loc[thisData.group==thisGroup,"Ar_obs"],label="RGCN - %s"%thisGroup,color=thisColor)
 
+    #                ax.scatter(x=thisData['{}_obs'.format(thisMetric)],y=thisData['{}_sntemp'.format(thisMetric)],label="SNTEMP",color="red")
+    #         for i, label in enumerate(thisData.seg_id_nat):
+    #             ax.annotate(int(label), (thisData.loc[thisData.group==thisGroup,'Per_Local'][i],thisData.loc[thisData.group==thisGroup,"rmse"][i]))
+            if thisFig==1:
+                      ax.legend()
+            ax.set_xlabel(axisTitle)
+            ax.set_ylabel("Ar, dimensionless")
+            
+            thisFig = thisFig + 1
+            ax = fig.add_subplot(len(np.unique(dischargeDF.partition)), 4, thisFig)
+            ax.set_title('delta Phi versus Simulated Discharge, {}'.format(thisPart))
+            #ax.axline((np.nanmean(thisData['{}_pred'.format(thisMetric)]),np.nanmean(thisData['{}_pred'.format(thisMetric)])), slope=1.0,linewidth=1, color='black', label="1 to 1 line")
+            colorDict = {"Atmosphere":"red","Shallow":"green","Deep":"blue", "Unknown":"gray"}
+            for thisGroup in np.unique(thisData['group'])[::-1]:
+                thisColor = colorDict[thisGroup]
+                ax.scatter(x=thisData.loc[thisData.group==thisGroup,plotCol],y=thisData.loc[thisData.group==thisGroup,"delPhi_obs"],label="RGCN - %s"%thisGroup,color=thisColor)
+
+    #                ax.scatter(x=thisData['{}_obs'.format(thisMetric)],y=thisData['{}_sntemp'.format(thisMetric)],label="SNTEMP",color="red")
+    #         for i, label in enumerate(thisData.seg_id_nat):
+    #             ax.annotate(int(label), (thisData.loc[thisData.group==thisGroup,'Per_Local'][i],thisData.loc[thisData.group==thisGroup,"rmse"][i]))
+            if thisFig==1:
+                      ax.legend()
+            ax.set_xlabel(axisTitle)
+            ax.set_ylabel("Ar, dimensionless")
+            
+            
     plt.savefig(figFile)
