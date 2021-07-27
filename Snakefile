@@ -22,6 +22,7 @@ flowModelName = config["flowModelName"]
 modelDir = config['modelDir']
 outDir = config['out_dir']
 rasterPath = config['rasterPath']
+workingDir = os.getcwd()
 
 loss_function = lf.multitask_rmse(config['lambdas'])
 
@@ -58,7 +59,7 @@ use rule all from other_workflow as other_all with:
                 metric_type=['overall', 'month', 'reach', 'month_reach'],
         ),
         expand("{outdir}/GW_{model_metric}.png", outdir=outDir, model_metric=['Per_Local','q_all','q_std','q_std_per']),
-        '{}/{}.mpsim'.format(outDir,flowModelName)
+        '{}/{}.mpend'.format(modelDir,flowModelName)
  
 rule get_NHM_data:
     output:
@@ -100,10 +101,18 @@ rule compile_discharge:
         
 rule write_modpath_files:
     output:
-        '{}/{}.mpsim'.format(outDir,flowModelName)
+        '{}/{}.mpsim'.format(modelDir,flowModelName)
     run:
         make_modpath_model(modelDir, modelName, flowModelName)
-        
+
+rule run_modpath:
+    input:
+        '{}/{}.mpsim'.format(modelDir,flowModelName)
+    output:
+        '{}/{}.mpend'.format(modelDir,flowModelName)
+    shell:
+        'cd {modelDir}; mpath7 {input}; cd {workingDir}' 
+    
         
 def get_segment_list(gw_file_in, pretrain_file_in, seg_col="seg_id_nat"):
     gwDF = pd.read_csv(gw_file_in)
