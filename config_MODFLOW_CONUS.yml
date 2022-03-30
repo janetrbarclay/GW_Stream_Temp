@@ -1,0 +1,9 @@
+archiveCode: "zell2020_wrr"
+
+subdomainCodes: ['02']
+
+filesNeeded: ['models','outputs']
+
+outDir: "zell2020_wrr" 
+
+
