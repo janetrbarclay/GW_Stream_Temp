@@ -6,25 +6,25 @@ out_dir = config['outDir']
 
 rule all:
 	input:
-		expand("{outdir}//{archiveFile}.{subdomain}.zip",
+		expand("{outdir}/{archiveFile}.{subdomain}.zip",
 			archiveFile = config['filesNeeded'],
 			subdomain = config['subdomainCodes'],
 			outdir = out_dir
 			),
-		expand("{outdir}//readme.txt",
+		expand("{outdir}/readme.txt",
 			outdir = out_dir
 			)
 		
 
 rule fetch_data:
 	output:
-		"{outdir}//{archiveFile}.{subdomain}.zip"
+		"{outdir}/{archiveFile}.{subdomain}.zip"
 	run:
 		get_gw_archive_data(config['archiveCode'], os.path.basename(output[0]), output[0])
 		
 rule fetch_readme:
 	output:
-		"{outdir}//readme.txt"
+		"{outdir}/readme.txt"
 	run:
 		get_gw_archive_data(config['archiveCode'], os.path.basename(output[0]), output[0])
 
