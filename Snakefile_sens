@@ -9,14 +9,16 @@ from river_dl.gw_utils import prep_annual_signal_data, calc_pred_ann_temp,calc_g
 
 out_dir = config['out_dir']
 code_dir = config['code_dir']
+lamb_1 = [0,0.2,0.4,0.6,0.8,1.0]
 lamb_2 = [0,0.2,0.4,0.6,0.8,1.0]
 lamb_3 = [0,0.2,0.4,0.6,0.8,1.0]
 
 rule all:
     input:
-        expand("{outdir}/{metric_type}_metrics_{lamb2}_{lamb3}.csv",
+        expand("{outdir}/{metric_type}_metricsi_{lamb}_{lamb2}_{lamb3}.csv",
                 outdir=out_dir,
                 metric_type=['overall', 'month', 'reach', 'month_reach'],
+                lamb = lamb_1,
                 lamb2=lamb_2,
                 lamb3=lamb_3,
                 
@@ -32,8 +34,9 @@ rule all:
                 lamb2=lamb_2,
                 lamb3=lamb_3,
         ),
-        expand("{outdir}/GW_summary_{lamb2}_{lamb3}.csv", 
+        expand("{outdir}/GW_summary_{lamb}_{lamb2}_{lamb3}.csv", 
                 outdir=out_dir,
+                lamb=lamb_1,
                 lamb2=lamb_2,
                 lamb3=lamb_3,
         ),
@@ -99,12 +102,12 @@ rule train:
         run_dir=lambda wildcards, output: os.path.split(output[0][:-1])[0],
         pt_epochs=config['pt_epochs'],
         ft_epochs=config['ft_epochs'],
-        lamb=config['lamb'],
+        #lamb=config['lamb'],
         loss = config['loss_type'],
     shell:
         """
         module load analytics cuda10.1/toolkit/10.1.105 
-        run_training -e /home/jbarclay/.conda/envs/rgcn --no-node-list "python {code_dir}/train_model.py -o {params.run_dir} -i {input[0]} -p {params.pt_epochs} -f {params.ft_epochs} --lamb {params.lamb} --lamb2 {wildcards.lamb2} --lamb3 {wildcards.lamb3} --model rgcn --loss {params.loss} -s 135"
+        run_training -e /home/jbarclay/.conda/envs/rgcn --no-node-list "python {code_dir}/train_model.py -o {params.run_dir} -i {input[0]} -p {params.pt_epochs} -f {params.ft_epochs} --lamb {wildcards.lamb} --lamb2 {wildcards.lamb2} --lamb3 {wildcards.lamb3} --model rgcn --loss {params.loss} -s 135"
         """
  
 # use "train_model" if wanting to use CPU or local GPU
@@ -152,10 +155,10 @@ rule combine_metrics:
     input:
          config['obs_temp'],
          config['obs_flow'],
-         "{outdir}/trn_preds_{lamb2}_{lamb3}.feather",
-         "{outdir}/val_preds_{lamb2}_{lamb3}.feather"
+         "{outdir}/trn_preds_{lamb}_{lamb2}_{lamb3}.feather",
+         "{outdir}/val_preds_{lamb}_{lamb2}_{lamb3}.feather"
     output:
-         "{outdir}/{metric_type}_metrics_{lamb2}_{lamb3}.csv"
+         "{outdir}/{metric_type}_metrics_{lamb}_{lamb2}_{lamb3}.csv"
     group: 'train_predict_evaluate'
     params:
         grp_arg = get_grp_arg
@@ -181,25 +184,25 @@ rule plot_prepped_data:
 rule compile_pred_GW_stats:
     input:
         "{outdir}/GW.npz",
-        "{outdir}/trn_preds_{lamb2}_{lamb3}.feather",
-        "{outdir}/tst_preds_{lamb2}_{lamb3}.feather",
-        "{outdir}/val_preds_{lamb2}_{lamb3}.feather"
+        "{outdir}/trn_preds_{lamb}_{lamb2}_{lamb3}.feather",
+        "{outdir}/tst_preds_{lamb}_{lamb2}_{lamb3}.feather",
+        "{outdir}/val_preds_{lamb}_{lamb2}_{lamb3}.feather"
     output:
-        "{outdir}/GW_stats_trn_{lamb2}_{lamb3}.csv",
-        "{outdir}/GW_stats_tst_{lamb2}_{lamb3}.csv",
-        "{outdir}/GW_stats_val_{lamb2}_{lamb3}.csv",
+        "{outdir}/GW_stats_trn_{lamb}_{lamb2}_{lamb3}.csv",
+        "{outdir}/GW_stats_tst_{lamb}_{lamb2}_{lamb3}.csv",
+        "{outdir}/GW_stats_val_{lamb}_{lamb2}_{lamb3}.csv",
     run: 
         calc_pred_ann_temp(input[0],input[1],input[2], input[3], output[0], output[1], output[2])
         
 rule calc_gw_summary_metrics:
     input:
-        "{outdir}/GW_stats_trn_{lamb2}_{lamb3}.csv",
-        "{outdir}/GW_stats_tst_{lamb2}_{lamb3}.csv",
-        "{outdir}/GW_stats_val_{lamb2}_{lamb3}.csv",
+        "{outdir}/GW_stats_trn_{lamb}_{lamb2}_{lamb3}.csv",
+        "{outdir}/GW_stats_tst_{lamb}_{lamb2}_{lamb3}.csv",
+        "{outdir}/GW_stats_val_{lamb}_{lamb2}_{lamb3}.csv",
     output:
-        "{outdir}/GW_summary_{lamb2}_{lamb3}.csv",
-        "{outdir}/GW_scatter_{lamb2}_{lamb3}.png",
-        "{outdir}/GW_boxplot_{lamb2}_{lamb3}.png",
+        "{outdir}/GW_summary_{lamb}_{lamb2}_{lamb3}.csv",
+        "{outdir}/GW_scatter_{lamb}_{lamb2}_{lamb3}.png",
+        "{outdir}/GW_boxplot_{lamb}_{lamb2}_{lamb3}.png",
     run:
         calc_gw_metrics(input[0],input[1],input[2],output[0], output[1], output[2])
         

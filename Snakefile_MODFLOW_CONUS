@@ -1,31 +1,42 @@
 import os
 
-from gw_stream_temp.getGWModelArchive import get_gw_archive_data
+from gw_stream_temp.getGWModelArchive import get_gw_archive_data, unzip_gw_archive_data
 
 out_dir = config['outDir']
 
 rule all:
 	input:
-		expand("{outdir}//{archiveFile}.{subdomain}.zip",
+		expand("{outdir}/{archiveFile}.{subdomain}.zip",
 			archiveFile = config['filesNeeded'],
 			subdomain = config['subdomainCodes'],
 			outdir = out_dir
 			),
-		expand("{outdir}//readme.txt",
+		expand("{outdir}/readme.txt",
 			outdir = out_dir
-			)
+			),
+                expand("{outdir}/{archiveFile}.{subdomain}.pth",
+                        archiveFile = config['filesNeeded'],
+                        subdomain = config['subdomainCodes'],
+                        outdir = out_dir
+                        )
 		
 
 rule fetch_data:
 	output:
-		"{outdir}//{archiveFile}.{subdomain}.zip"
+		"{outdir}/{archiveFile}.{subdomain}.zip"
 	run:
 		get_gw_archive_data(config['archiveCode'], os.path.basename(output[0]), output[0])
 		
 rule fetch_readme:
 	output:
-		"{outdir}//readme.txt"
+		"{outdir}/readme.txt"
 	run:
 		get_gw_archive_data(config['archiveCode'], os.path.basename(output[0]), output[0])
 
-		
+rule unzip_GW_archive:
+        input:
+            "{outdir}/{archiveFile}.{subdomain}.zip"
+        output:
+            "{outdir}/{archiveFile}.{subdomain}.pth"
+        run:
+            unzip_gw_archive_data(input[0],output[0])
