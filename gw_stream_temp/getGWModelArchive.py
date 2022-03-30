@@ -23,4 +23,3 @@ def unzip_gw_archive_data(zippedFile,output):
     with open(output, "w+") as f:
         f.write(outPath)
     
-
