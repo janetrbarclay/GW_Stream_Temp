@@ -1,5 +1,6 @@
 out*
 data*
+archive*
 *.ipynb*
 .snakemake
 *.slurm
