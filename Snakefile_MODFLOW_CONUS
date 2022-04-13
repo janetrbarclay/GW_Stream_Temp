@@ -1,43 +1,179 @@
 import os
 
-from gw_stream_temp.getGWModelArchive import get_gw_archive_data, unzip_gw_archive_data
+from gw_stream_temp.fetch_data import get_NHM_gis_data, make_vpu_dict, get_NHDPlus_gis_data, unzip_NHDPlus_gis_data
+from gw_stream_temp.getGWModelArchive import get_gw_archive_data, unzip_gw_archive_data, get_model_list
+from gw_stream_temp.preprocess_modflow_data import make_model_shapefile, compile_model_outputs, get_catchment_nodes,compile_catchment_discharge, aggregate_catchment_discharge
 
-out_dir = config['outDir']
 archiveDir = "archive_"+config['archiveCode']
+procArchivDir = "data_"+config['archiveCode']
+zippedArchiveFiles = ["{}.{}.zip".format(x,y) for x in config['subdomainFilesNeeded'] for y in config['subdomainCodes']]
+zippedArchiveFiles.extend([x for x in config['otherFilesNeeded'] if x.endswith('zip')])
+otherArchiveFiles = [x for x in config['otherFilesNeeded'] if not x.endswith('zip')]
+
+idxDict = {'NHM':'seg_id_nat', 'NHDPlus':'COMID'}
+wildcard_constraints:
+   subdomainCode='\d+',
+   networkCode='[^_]+',
+   vpu='\w+[^_]+',
+   DA='[^_]+',
+   zipped_archive_file ='[^_]+',
+   other_archive_file ='[^_]+'
+   
+vpuDict = make_vpu_dict()
 
 rule all:
 	input:
-		expand("{outdir}/{archiveFile}.{subdomain}.zip",
-			archiveFile = config['filesNeeded'],
-			subdomain = config['subdomainCodes'],
-			outdir = archiveDir
-			),
-		expand("{outdir}/readme.txt",
-			outdir = archiveDir
-			),
-                expand("{outdir}/{archiveFile}.{subdomain}.pth",
-                        archiveFile = config['filesNeeded'],
-                        subdomain = config['subdomainCodes'],
-                        outdir = archiveDir
-                        )
+		expand('{procArchivDir}/MODFLOW_Discharge_{networkCode}_{archiveCode}_{subdomainCode}.feather',
+		procArchivDir = procArchivDir, networkCode = config['networkCodes'],archiveCode = config['archiveCode'], subdomainCode = config['subdomainCodes']),
+		expand('{archiveDir}/{other_archive_file}', archiveDir = archiveDir, other_archive_file = otherArchiveFiles),
+		expand('{archiveDir}/{zipped_archive_file}.pth',archiveDir = archiveDir, zipped_archive_file = [x.replace(".zip","") for x in zippedArchiveFiles]),
+		[os.path.join('data_NHDPlus','NHDPlus{}'.format(vpuDict[subdomain]['DA']),'NHDPlus{}'.format(vpu),nhd_file) for subdomain in config['subdomainCodes'] for nhd_file in config['nhdFilesNeeded'] for vpu in vpuDict[subdomain]['vpu']]
 		
-
-rule fetch_data:
+############
+### Fetch and unzip the groundwater archive files		
+rule fetch_zipped_archive_files:
 	output:
-		"{outdir}/{archiveFile}.{subdomain}.zip"
+		"{outdir}/{zipped_archive_file}.zip"
 	run:
 		get_gw_archive_data(config['archiveCode'], os.path.basename(output[0]), output[0])
 		
-rule fetch_readme:
+rule fetch_text_archive_files:
 	output:
-		"{outdir}/readme.txt"
+		"{outdir}/{other_archive_file}.txt"
 	run:
 		get_gw_archive_data(config['archiveCode'], os.path.basename(output[0]), output[0])
 
 rule unzip_GW_archive:
-        input:
-            "{outdir}/{archiveFile}.{subdomain}.zip"
-        output:
-            "{outdir}/{archiveFile}.{subdomain}.pth"
-        run:
-            unzip_gw_archive_data(input[0],output[0])
+    input:
+        "{outdir}/{zipped_archive_file}.zip"
+    output:
+        "{outdir}/{zipped_archive_file}.pth"
+    run:
+        unzip_gw_archive_data(input[0],output[0])
+
+################
+## get the list of models within the archive		
+checkpoint get_archive_model_list:
+    input:
+        expand('{archiveDir}/{file}.pth',archiveDir = archiveDir, file = [x.replace(".zip","") for x in zippedArchiveFiles])
+    output:
+        '{}/ModelList.txt'.format(procArchivDir)
+    run:
+        get_model_list(archiveDir,output[0])
+
+
+	
+def get_raster_path(modelName):
+	raster_path = [x for x in os.listdir(os.path.join(archiveDir,"ancillary","Data_Subdomain")) if x.startswith(modelName[:5]) and x.endswith("_idomain.tif")]
+	raster_path = os.path.join(archiveDir,"ancillary","Data_Subdomain",raster_path[0])
+	
+	return raster_path
+		
+rule make_model_shapefile:
+	input:
+		os.path.join(archiveDir,"Data_Subdomain.pth")
+	output:
+		'{procArchivDir}/Shapefiles/{thisModel}_modelGrid.shp'
+	run:
+		make_model_shapefile(os.path.join(archiveDir,"model",wildcards.thisModel),wildcards.thisModel, 'gwf0', output[0], get_raster_path(wildcards.thisModel))
+		
+rule get_model_outputs:
+	output:
+		'{procArchivDir}/CompiledOutputs/Model_Outputs_{thisModel}.feather'
+	run:
+		compile_model_outputs(os.path.join(archiveDir,"model",wildcards.thisModel),os.path.join(archiveDir,"output","outputs.{}".format(wildcards.thisModel)),wildcards.thisModel,output[0])
+
+	
+			
+rule get_NHM_data:
+    output:
+        directory('data_NHM/GFv1.1.gdb')
+    run:
+        get_NHM_gis_data(item='5e29d1a0e4b0a79317cf7f63',filenameLst=['GFv1.1.gdb.zip'], destination='data_NHM')
+		
+		
+rule get_NHDPlus_data:
+    output:
+        '{nhdDir}/NHDPlusV21_{vpu}_{DA}_{nhd_file}.pth'
+    run:
+        get_NHDPlus_gis_data(vpu=wildcards.vpu, DA = wildcards.DA,file = wildcards.nhd_file, destination=wildcards.nhdDir)
+		
+rule unzip_NHDPlus_data:
+	input:
+	     '{nhdDir}/NHDPlusV21_{vpu}_{DA}_{nhd_file}.pth'
+	output:
+		directory('{nhdDir}/NHDPlus{DA}/NHDPlus{vpu}/{nhd_file}')
+	run:
+		unzip_NHDPlus_gis_data(input[0])
+		
+	
+rule create_NHM_catchment_dictionaries:
+    input:
+        'data_NHM/GFv1.1.gdb',
+        '{procArchivDir}/Shapefiles/{thisModel}_modelGrid.shp',
+    output:
+        '{procArchivDir}/CompiledOutputs/local_catch_dict_NHM_{thisModel}.npy',
+        '{procArchivDir}/CompiledOutputs/upstream_catch_dict_NHM_{thisModel}.npy'
+    run:
+        get_catchment_nodes(gdb = input[0], reach_files = 'nsegment_v1_1', catchment_files = 'nhru_v1_1_simp', networkCode = "NHM", reachIdx = "seg_id_nhm", model_shapefile = input[1],local_out_file = output[0],upstream_out_file = output[1], model_crs=config['model_crs'], network_crs = "ESRI:102039")		
+
+def get_NHDPlus_file_list(wildcards):
+	subdomainCode = wildcards.thisModel[:2]
+	reach_files = [os.path.join('data_NHDPlus','NHDPlus{}'.format(vpuDict[subdomainCode]['DA']),'NHDPlus{}'.format(vpu),"NHDSnapshot") for vpu in vpuDict[subdomainCode]['vpu']]
+	
+	catchment_files = [os.path.join('data_NHDPlus','NHDPlus{}'.format(vpuDict[subdomainCode]['DA']),'NHDPlus{}'.format(vpu),"NHDPlusCatchment") for vpu in vpuDict[subdomainCode]['vpu']]
+	
+	attribute_files = [os.path.join('data_NHDPlus','NHDPlus{}'.format(vpuDict[subdomainCode]['DA']),'NHDPlus{}'.format(vpu),"NHDPlusAttributes") for vpu in vpuDict[subdomainCode]['vpu']]
+	
+	model_shapefile = '{}/Shapefiles/{}_modelGrid.shp'.format(wildcards.procArchivDir,wildcards.thisModel)
+	
+	input_file_list = reach_files
+	input_file_list.extend(catchment_files)
+	input_file_list.extend(attribute_files)
+	input_file_list.append(model_shapefile)
+	
+	return input_file_list
+	
+	
+rule create_NHDPlus_catchment_dictionaries:
+    input:
+        get_NHDPlus_file_list
+    output:
+        '{procArchivDir}/CompiledOutputs/local_catch_dict_NHDPlus_{thisModel}.npy',
+        '{procArchivDir}/CompiledOutputs/upstream_catch_dict_NHDPlus_{thisModel}.npy'
+    run:
+        get_catchment_nodes(reach_files = [x for x in input if "NHDSnapshot" in x], catchment_files = [x for x in input if "NHDPlusCatchment" in x],attribute_files = [x for x in input if "NHDPlusAttributes" in x], networkCode = "NHDPlus", reachIdx = "COMID", model_shapefile = input[-1:][0], local_out_file  = output[0],upstream_out_file = output[1], model_crs=config['model_crs'])		
+
+
+
+
+rule compile_discharge:
+    input:
+        '{procArchivDir}/CompiledOutputs/Model_Outputs_{thisModel}.feather',
+        '{procArchivDir}/CompiledOutputs/local_catch_dict_{networkCode}_{thisModel}.npy',
+        '{procArchivDir}/CompiledOutputs/upstream_catch_dict_{networkCode}_{thisModel}.npy'
+    output:
+        '{procArchivDir}/CompiledOutputs/CatchmentDischarge_{networkCode}_{thisModel}.feather',
+    run:
+        compile_catchment_discharge(input[0],idxDict[wildcards.networkCode],input[1],input[2],output[0])		
+
+def read_model_list(wildcards):
+	checkpoint_output = checkpoints.get_archive_model_list.get().output[0]
+	with open(checkpoint_output) as f:
+		model_list = [x[:-1] for x in f.readlines()]
+		
+	#trim down the list of models to only those in the current subdomain
+	model_list = [x for x in model_list if x.startswith(wildcards.subdomainCode)]
+	
+	input_list = expand('{outDir}/CompiledOutputs/CatchmentDischarge_{networkCode}_{modelList}.feather',outDir = procArchivDir, networkCode = config['networkCodes'],modelList = model_list)
+
+	return input_list	
+		
+
+rule aggregate_discharge:
+    input:
+        read_model_list
+    output:
+        '{procArchivDir}/MODFLOW_Discharge_{networkCode}_{archiveCode}_{subdomainCode}.feather',
+    run:
+        aggregate_catchment_discharge(input,output[0], idxDict[wildcards.networkCode])	
