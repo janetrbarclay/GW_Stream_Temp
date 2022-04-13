@@ -1,0 +1,16 @@
+name: mf_data_extraction
+channels:
+    - conda-forge
+    - defaults
+    - bioconda
+dependencies:
+    - geopandas
+    - flopy
+    - numpy
+    - pandas
+    - pip
+    - pyarrow
+    - snakemake
+    - py7zr
+    - pip:
+        - sciencebasepy
