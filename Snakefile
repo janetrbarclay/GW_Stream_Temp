@@ -4,8 +4,9 @@ import xarray as xr
 
 sys.path.append("../river-dl")
 
-from gw_stream_temp.fetch_data import get_NHM_gis_data
-from gw_stream_temp.preprocess_modflow_data import compile_catchment_discharge, get_catchment_nodes, compile_model_outputs, make_model_shapefile
+from gw_stream_temp.getNetworkData import get_NHM_gis_data
+from gw_stream_temp.preprocessMODFLOW import compile_model_outputs, make_model_shapefile
+from gw_stream_temp.combineNetworkMODFLOW import compile_catchment_discharge, get_catchment_nodes
 from gw_stream_temp.preprocess_modpath_data import make_modpath_model
 from gw_stream_temp.visualize import plot_by_perlocal
 from river_dl.preproc_utils import prep_data
@@ -88,6 +89,7 @@ rule create_catchment_dictionaries:
         '{}/upstream_catch_dict.npy'.format(outDir),
     run:
         get_catchment_nodes(input[0], input[1],5070,output[0],output[1])
+		get_catchment_nodes(gdb = input[0], reach_files = 'nsegment_v1_1', catchment_files = 'nhru_v1_1_simp', networkCode = "NHM", reachIdx = "seg_id_nhm", model_shapefile = input[1],local_out_file = output[0],upstream_out_file = output[1], model_crs=config['model_crs'], network_crs = "ESRI:102039")
         
 rule compile_discharge:
     input:

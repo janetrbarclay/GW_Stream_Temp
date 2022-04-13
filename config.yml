@@ -10,6 +10,7 @@ modelName: "MONTAGUE_drb1.04_mf6_20210713_250"
 flowModelName: "drb1.04"
 modelDir: "/home/jbarclay/GW_Models/DRB/MONTAGUE/model/MONTAGUE_drb1.04_mf6_20210713_250"
 rasterPath: '/home/jbarclay/GW_Models/DRB/MONTAGUE/model/MONTAGUE_drb1.04_mf6_250_SY05/MONTAGUE_250_idomain.tif'
+model_crs: 'EPSG:5070'
 
 out_dir: "out_MONTAGUE_drb1.04_mf6_250_noGW"
 code_dir: "../river-dl/river_dl"
