@@ -35,10 +35,10 @@ def get_NHM_gis_data(item='5e29d1a0e4b0a79317cf7f63',filenameLst=['GFv1.1.gdb.zi
                 z.extractall(destination)
                 
 def make_vpu_dict():
-'''
-creates a dictionary of vpu's, etc for downloading the NHDPlus network. 
-this is based on the script found here: https://github.com/Msawtelle/PyNHDPlus/blob/master/NHDPlus_Extractor/NHDPlus_Extractor.py
-'''
+    '''
+    creates a dictionary of vpu's, etc for downloading the NHDPlus network. 
+    this is based on the script found here: https://github.com/Msawtelle/PyNHDPlus/blob/master/NHDPlus_Extractor/NHDPlus_Extractor.py
+    '''
     vpu_dict = {'01': {'vpu':['01'],'DA':'NE'},
                      '02': {'vpu':['02'],'DA':'MA'},
                      '03': {'vpu':['03N','03S','03W'],'DA':'SA'},
