@@ -17,7 +17,7 @@ def unzip_gw_archive_data(zippedFile,output):
     subDir = [x for x in subDirList if os.path.basename(zippedFile).startswith(x)]
     subDir = subDir[0] if len(subDir)==1 else "ancillary"
         
-    if subDir =="ancillary":
+    if subDir =="ancillary" and os.path.basename(zippedFile)!="ancillary.zip":
         subDir = os.path.join(subDir,os.path.basename(zippedFile).split(".")[0])
     
 
