@@ -12,5 +12,6 @@ dependencies:
     - pyarrow
     - snakemake
     - py7zr
+    - pyshp
     - pip:
         - sciencebasepy

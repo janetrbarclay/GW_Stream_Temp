@@ -17,8 +17,9 @@ wildcard_constraints:
    networkCode='[^_]+',
    vpu='\w+[^_]+',
    DA='[^_]+',
-   zipped_archive_file ='[^_]+',
-   other_archive_file ='[^_]+'
+   zipped_archive_file = '({})'.format("|".join(["\\.".join(x.split(".")[:-1]) for x in zippedArchiveFiles])),
+#   zipped_archive_file ='[^_]+',
+#   other_archive_file ='[^_]+'
    
 vpuDict = make_vpu_dict()
 
