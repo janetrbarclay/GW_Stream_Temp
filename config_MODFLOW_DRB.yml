@@ -1,0 +1,12 @@
+networkCodes: ['NHM'] #options include "NHM" and "NHDPlus"
+
+#source of the reach network files
+dictionaryDir: "data_zell2020_wrr"
+dictionaryModelName: "0204_0206_0209_MF6_SS_Unconfined_250"
+
+outputDir: "data_DRB_TRENTON"
+modelName: "TRENTON_1.04"
+
+
+
+

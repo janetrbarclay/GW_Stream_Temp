@@ -234,6 +234,28 @@ def compile_catchment_discharge(node_discharge_file="resultsAgg.feather", reachI
     
     dischargeDF.to_feather(out_file)
     
+    
+def compile_catchment_discharge_csv(node_discharge_file = "drn_obs.csv", reachIdx = "seg_id_nat", upStreamDictFile = 'upstreamCatchDict.npy', out_file = "CatchmentDischarge.feather"):
+    """
+    compiles the groundwater discharge (total and as a percent of upstream - including the local catchment - discharge) for each catchment
+    :param node_discharge_file: [str] csv file of groundwater discharge for each model node for each model timestep (reachs as row names, timesteps in column 1)
+    :param upStreamDictFile: [str] file path to the dictionary of catchments in or upstream of each catchment
+    :param out_file: [str] output feather file of the compiled discharge
+    """  
+    
+    rawDischargeDF = pd.read_csv(node_discharge_file)
+    
+    upStreamDict = np.load(upStreamDictFile, allow_pickle=True)[()]
+    
+    dischargeDF = pd.DataFrame(data = {reachIdx: rawDischargeDF.columns[1:],'q_local':rawDischargeDF.iloc[:,1:].mean(),'q_std':rawDischargeDF.iloc[:,1:].std()})
+    dischargeDF['q_std_per']=dischargeDF['q_std']/dischargeDF['q_local']
+    dischargeDF['seg_id_nat']=[int(x) for x in dischargeDF['seg_id_nat']]
+    dischargeDF['q_all']=[np.sum(dischargeDF.q_local.loc[dischargeDF[reachIdx].isin(upStreamDict[int(x)])]) for x in dischargeDF[reachIdx]]
+    dischargeDF['Per_Local']=dischargeDF['q_local']/dischargeDF['q_all']*100
+    dischargeDF['nDown'] = [np.sum([x in upStreamDict[y] for y in upStreamDict.keys()]) for x in dischargeDF[reachIdx]] #this counts the number of reaches within the upStreamDict for which the current reach is upstream. it is used to filter out streams near the boundaries of models (where the downstream network is more fully represented in a different model)
+    
+    dischargeDF.to_feather(out_file)
+        
 
 def aggregate_catchment_discharge (dischargeFiles, out_file, spatial_idx_name):
     """
