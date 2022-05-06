@@ -253,7 +253,8 @@ def compile_catchment_discharge_csv(node_discharge_file = "drn_obs.csv", reachId
     dischargeDF['q_all']=[np.sum(dischargeDF.q_local.loc[dischargeDF[reachIdx].isin(upStreamDict[int(x)])]) for x in dischargeDF[reachIdx]]
     dischargeDF['Per_Local']=dischargeDF['q_local']/dischargeDF['q_all']*100
     dischargeDF['nDown'] = [np.sum([x in upStreamDict[y] for y in upStreamDict.keys()]) for x in dischargeDF[reachIdx]] #this counts the number of reaches within the upStreamDict for which the current reach is upstream. it is used to filter out streams near the boundaries of models (where the downstream network is more fully represented in a different model)
-    
+
+    dischargeDF.reset_index(inplace=True,drop=True) 
     dischargeDF.to_feather(out_file)
         
 

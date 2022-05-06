@@ -1,9 +1,6 @@
 import os
 
-from gw_stream_temp.getNetworkData import get_NHM_gis_data, make_vpu_dict, get_NHDPlus_gis_data, unzip_NHDPlus_gis_data
-from gw_stream_temp.getGWModelArchive import get_gw_archive_data, unzip_gw_archive_data, get_model_list
-from gw_stream_temp.preprocessMODFLOW import make_model_shapefile, compile_model_outputs
-from gw_stream_temp.combineNetworkMODFLOW import get_catchment_nodes,compile_catchment_discharge, aggregate_catchment_discharge
+from gw_stream_temp.combineNetworkMODFLOW import compile_catchment_discharge_csv, aggregate_catchment_discharge
 
 dictionaryDir = config['dictionaryDir']
 dictionaryModelName = config['dictionaryModelName']
@@ -13,6 +10,8 @@ modelName = config['modelName']
 
 idxDict = {'NHM':'seg_id_nat', 'NHDPlus':'COMID'}
 
+wildcard_constraints:
+   networkCode='[^_]+'
 
 rule all:
 	input:
@@ -22,7 +21,7 @@ rule all:
 rule compile_discharge:
     input:
         '{outputDir}/CompiledOutputs/drn_obs.csv',
-        '{dictionaryDir}/CompiledOutputs/upstream_catch_dict_{networkCode}_{dictionaryModelName}.npy'
+        expand('{dictionaryDir}/CompiledOutputs/upstream_catch_dict_{{networkCode}}_{dictionaryModelName}.npy', dictionaryDir = dictionaryDir, dictionaryModelName = dictionaryModelName)
     output:
         '{outputDir}/CatchmentDischarge_{networkCode}_{modelName}.feather',
     run:
