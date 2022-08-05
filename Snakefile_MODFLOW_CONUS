@@ -5,8 +5,8 @@ from gw_stream_temp.getGWModelArchive import get_gw_archive_data, unzip_gw_archi
 from gw_stream_temp.preprocessMODFLOW import make_model_shapefile, compile_model_outputs
 from gw_stream_temp.combineNetworkMODFLOW import get_catchment_nodes,compile_catchment_discharge, aggregate_catchment_discharge
 
-archiveDir = "archive_"+config['archiveCode']
-procArchivDir = "data_"+config['archiveCode']
+archiveDir = os.path.join(config['outputDir'],"archive_"+config['archiveCode'])
+procArchivDir =  os.path.join(config['outputDir'],"data_"+config['archiveCode'])
 zippedArchiveFiles = ["{}.{}.zip".format(x,y) for x in config['subdomainFilesNeeded'] for y in config['subdomainCodes']]
 zippedArchiveFiles.extend([x for x in config['otherFilesNeeded'] if x.endswith('zip')])
 otherArchiveFiles = [x for x in config['otherFilesNeeded'] if not x.endswith('zip')]

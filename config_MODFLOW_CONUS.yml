@@ -1,3 +1,6 @@
+outputDir: "../../../../caldera/projects/usgs/water/impd/pump/drb-gw-hw-temp/data_modflow"
+
+
 archiveCode: "zell2020_wrr"
 
 subdomainCodes: ['02']
