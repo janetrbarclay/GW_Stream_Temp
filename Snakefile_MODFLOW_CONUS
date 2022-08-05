@@ -188,4 +188,5 @@ rule compile_model_params:
     output:
         '{procArchivDir}/CompiledOutputs/Model_Params_{networkCode}_{thisModel}.feather',
     run:
-        compile_catchment_params(os.path.join(archiveDir,"model",wildcards.thisModel),wildcards.thisModel, 'gwf0',paramDict = config['paramsToExtract'],idxDict[wildcards.networkCode],input[0],output[0])
+        compile_catchment_params(os.path.join(archiveDir,"model",wildcards.thisModel),wildcards.thisModel, 'gwf0',config['paramsToExtract'],idxDict[wildcards.networkCode],input[0],output[0])
+
