@@ -10,6 +10,7 @@ dependencies:
     - pandas
     - pip
     - pyarrow
+    - rasterio
     - snakemake
     - py7zr
     - pyshp
