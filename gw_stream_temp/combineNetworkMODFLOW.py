@@ -289,7 +289,7 @@ def aggregate_catchment_params (paramFiles, out_file, spatial_idx_name):
     :param out_file: [str] list of parameter files to aggregate
     :param out_file: [str] output feather file of the compiled parameters
     """
-    
+
     paramDF = pd.read_feather(paramFiles[0])
     for i in range(1,len(paramFiles)):
         paramDF = pd.concat([paramDF,pd.read_feather(paramFiles[i])], ignore_index=True)

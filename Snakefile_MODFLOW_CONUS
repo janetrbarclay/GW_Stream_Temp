@@ -3,7 +3,7 @@ import os
 from gw_stream_temp.getNetworkData import get_NHM_gis_data, make_vpu_dict, get_NHDPlus_gis_data, unzip_NHDPlus_gis_data
 from gw_stream_temp.getGWModelArchive import get_gw_archive_data, unzip_gw_archive_data, get_model_list
 from gw_stream_temp.preprocessMODFLOW import make_model_shapefile, compile_model_outputs, compile_catchment_params
-from gw_stream_temp.combineNetworkMODFLOW import get_catchment_nodes,compile_catchment_discharge, aggregate_catchment_discharge
+from gw_stream_temp.combineNetworkMODFLOW import get_catchment_nodes,compile_catchment_discharge, aggregate_catchment_discharge, aggregate_catchment_params
 
 archiveDir = os.path.join(config['outputDir'],"archive_"+config['archiveCode'])
 procArchivDir =  os.path.join(config['outputDir'],"data_"+config['archiveCode'])
@@ -196,4 +196,4 @@ rule aggregate_params:
     output:
         '{procArchivDir}/MODFLOW_params_{networkCode}_{archiveCode}_{subdomainCode}.feather',
     run:
-        aggregate_catchment_params(input.replace("CatchmentDischarge_","Model_Params_"),output[0], idxDict[wildcards.networkCode])
+        aggregate_catchment_params([x.replace("CatchmentDischarge_","Model_Params_") for x in input],output[0], idxDict[wildcards.networkCode])
