@@ -2,7 +2,7 @@ import os
 
 from gw_stream_temp.getNetworkData import get_NHM_gis_data, make_vpu_dict, get_NHDPlus_gis_data, unzip_NHDPlus_gis_data
 from gw_stream_temp.getGWModelArchive import get_gw_archive_data, unzip_gw_archive_data, get_model_list
-from gw_stream_temp.preprocessMODFLOW import make_model_shapefile, compile_model_outputs
+from gw_stream_temp.preprocessMODFLOW import make_model_shapefile, compile_model_outputs, compile_catchment_params
 from gw_stream_temp.combineNetworkMODFLOW import get_catchment_nodes,compile_catchment_discharge, aggregate_catchment_discharge
 
 archiveDir = os.path.join(config['outputDir'],"archive_"+config['archiveCode'])
@@ -27,9 +27,11 @@ rule all:
 	input:
 		expand('{procArchivDir}/MODFLOW_Discharge_{networkCode}_{archiveCode}_{subdomainCode}.feather',
 		procArchivDir = procArchivDir, networkCode = config['networkCodes'],archiveCode = config['archiveCode'], subdomainCode = config['subdomainCodes']),
-		expand('{archiveDir}/{other_archive_file}', archiveDir = archiveDir, other_archive_file = otherArchiveFiles),
-		expand('{archiveDir}/{zipped_archive_file}.pth',archiveDir = archiveDir, zipped_archive_file = [x.replace(".zip","") for x in zippedArchiveFiles]),
-		[os.path.join('data_NHDPlus','NHDPlus{}'.format(vpuDict[subdomain]['DA']),'NHDPlus{}'.format(vpu),nhd_file) for subdomain in config['subdomainCodes'] for nhd_file in config['nhdFilesNeeded'] for vpu in vpuDict[subdomain]['vpu']]
+		expand('{procArchivDir}/CompiledOutputs/Model_Params_{networkCode}_{thisModel}.feather',
+		procArchivDir = procArchivDir, networkCode = config['networkCodes'],thisModel = ['0204_0206_0209_MF6_SS_Unconfined_250','0205_MF6_SS_Unconfined_250','0206_0207_0208_MF6_SS_Unconfined_250']),
+#		expand('{archiveDir}/{other_archive_file}', archiveDir = archiveDir, other_archive_file = otherArchiveFiles),
+#		expand('{archiveDir}/{zipped_archive_file}.pth',archiveDir = archiveDir, zipped_archive_file = [x.replace(".zip","") for x in zippedArchiveFiles]),
+#		[os.path.join('data_NHDPlus','NHDPlus{}'.format(vpuDict[subdomain]['DA']),'NHDPlus{}'.format(vpu),nhd_file) for subdomain in config['subdomainCodes'] for nhd_file in config['nhdFilesNeeded'] for vpu in vpuDict[subdomain]['vpu']]
 		
 ############
 ### Fetch and unzip the groundwater archive files		
@@ -178,4 +180,12 @@ rule aggregate_discharge:
     output:
         '{procArchivDir}/MODFLOW_Discharge_{networkCode}_{archiveCode}_{subdomainCode}.feather',
     run:
-        aggregate_catchment_discharge(input,output[0], idxDict[wildcards.networkCode])	
+        aggregate_catchment_discharge(input,output[0], idxDict[wildcards.networkCode])
+		
+rule compile_model_params:
+    input:
+        '{procArchivDir}/CompiledOutputs/local_catch_dict_{networkCode}_{thisModel}.npy',
+    output:
+        '{procArchivDir}/CompiledOutputs/Model_Params_{networkCode}_{thisModel}.feather',
+    run:
+        compile_catchment_params(os.path.join(archiveDir,"model",wildcards.thisModel),wildcards.thisModel, 'gwf0',paramDict = config['paramsToExtract'],idxDict[wildcards.networkCode],input[0],output[0])

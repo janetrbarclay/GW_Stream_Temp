@@ -99,7 +99,8 @@ def get_catchment_nodes(gdb = None, reach_files=None, catchment_files=None, attr
     
     
     #join the catchments and the model grid centroids (the catchments are joined to the whole model grid to enable filtering by the percent included)
-
+    
+    ## modelGDF.node is 1 based
     joinDF = sjoin(catchmentGDF,gpd.GeoDataFrame(data=modelGDF[['node','ibound']], geometry = modelGDF.centroid),how="inner")
     
     #join the reaches and the model grid
@@ -280,3 +281,6 @@ def aggregate_catchment_discharge (dischargeFiles, out_file, spatial_idx_name):
     #get the number of discharge values, mean and std values for each segment (some segments are represented in multiple models)
     dischargeDF_agg_stats = dischargeDF[[spatial_idx_name,"q_local"]].groupby(spatial_idx_name,as_index=False).agg(['mean','std','count']).droplevel(0,axis=1).reset_index()
     dischargeDF_agg_stats.to_feather(out_file.replace(".feather","_stats.feather"))
+    
+    
+

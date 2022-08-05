@@ -13,4 +13,7 @@ networkCodes: ['NHM', 'NHDPlus'] #options include "NHM" and "NHDPlus"
 
 model_crs: 'ESRI:102039'
 
-
+paramsToExtract: 
+    hk: 
+        mean #currently only implemented for hk, could add any model cell parameter (like recharge)
+        [0]

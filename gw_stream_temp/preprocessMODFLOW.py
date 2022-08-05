@@ -188,3 +188,30 @@ def compile_model_outputs(modelpth="./", outputpth=None, thisModelName="MONTAGUE
     resultsAgg['q_std_per']=resultsAgg['q_std']/resultsAgg['q']
     
     resultsAgg.to_feather(out_file)
+
+def compile_catchment_params(modelpth="./", thisModelName="MONTAGUE_drb1.04_mf6_250", flow_model_name = "MONTAGUE_drb1.04_mf6_250",paramDict={'hk':['mean',[0]]}, reachIdx = "seg_id_nat", catchDictFile = 'localCatchDict.npy', out_file = "CatchmentDischarge.feather"):
+    """
+    compiles model parameters for each catchment
+    :param paramDict: dictionary of model parameters to extract
+    :param catchDictFile: [str] file path to dictionary of model nodes for each catchment
+    :param reachIdx: [str] reach identifier
+    :param out_file: [str] output feather file of the compiled discharge
+    """  
+    ml = load_modflow_model(modelpth,thisModelName,flow_model_name)
+    mf_version = ml.version
+    
+    catchDict = np.load(catchDictFile, allow_pickle=True)[()]
+    resultsDF = pd.DataFrame({reachIdx:[int(x) for x in catchDict.keys()if x !=0]})
+    
+    if mf_version=="mf6":
+        paramsDF = pd.DataFrame({'node':[x+1 for x in range(ml.dis.nrow.array*ml.dis.ncol.array)],'ibound':ml.dis.idomain.array[0].ravel()})
+    
+        for thisVar in paramDict.keys():
+            if thisVar=="hk":
+                varArray = ml.npf.k.array
+                for thisLayer in paramDict[thisVar][1]:
+                    paramsDF[thisVar+"_"+str(thisLayer)]=np.ravel(varArray[int(thisLayer)])
+                    if paramDict[thisVar][0]=="mean":
+                        resultsDF[thisVar+"_"+str(thisLayer)]=[np.mean(paramsDF.loc[paramsDF.node.isin(catchDict[x]),thisVar+"_"+str(thisLayer)]) for x in catchDict.keys()if x !=0]
+    
+    resultsDF.to_feather(out_file)
