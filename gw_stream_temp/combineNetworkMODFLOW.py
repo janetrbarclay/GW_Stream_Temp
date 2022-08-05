@@ -283,4 +283,25 @@ def aggregate_catchment_discharge (dischargeFiles, out_file, spatial_idx_name):
     dischargeDF_agg_stats.to_feather(out_file.replace(".feather","_stats.feather"))
     
     
+def aggregate_catchment_params (paramFiles, out_file, spatial_idx_name):
+    """
+    combines compiled parameter values from multiple models into 1 dataframe
+    :param out_file: [str] list of parameter files to aggregate
+    :param out_file: [str] output feather file of the compiled parameters
+    """
+    
+    paramDF = pd.read_feather(paramFiles[0])
+    for i in range(1,len(paramFiles)):
+        paramDF = pd.concat([paramDF,pd.read_feather(paramFiles[i])], ignore_index=True)
+        
+    
+    #aggregates the param values by segment
+    paramDF_agg = paramDF.groupby(spatial_idx_name,as_index=False).mean()
+    paramDF_agg.to_feather(out_file)
+    
+    #get the number of discharge values, mean and std values for each segment (some segments are represented in multiple models)
+    paramDF_agg_stats = paramDF[[spatial_idx_name,"hk_0"]].groupby(spatial_idx_name,as_index=False).agg(['mean','std','count']).droplevel(0,axis=1).reset_index()
+    paramDF_agg_stats.to_feather(out_file.replace(".feather","_stats.feather"))
+    
+    
 

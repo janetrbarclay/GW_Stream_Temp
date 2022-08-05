@@ -27,8 +27,8 @@ rule all:
 	input:
 		expand('{procArchivDir}/MODFLOW_Discharge_{networkCode}_{archiveCode}_{subdomainCode}.feather',
 		procArchivDir = procArchivDir, networkCode = config['networkCodes'],archiveCode = config['archiveCode'], subdomainCode = config['subdomainCodes']),
-		expand('{procArchivDir}/CompiledOutputs/Model_Params_{networkCode}_{thisModel}.feather',
-		procArchivDir = procArchivDir, networkCode = config['networkCodes'],thisModel = ['0204_0206_0209_MF6_SS_Unconfined_250','0205_MF6_SS_Unconfined_250','0206_0207_0208_MF6_SS_Unconfined_250']),
+		expand('{procArchivDir}/MODFLOW_params_{networkCode}_{archiveCode}_{subdomainCode}.feather',
+		procArchivDir = procArchivDir, networkCode = config['networkCodes'],archiveCode = config['archiveCode'], subdomainCode = config['subdomainCodes']),
 #		expand('{archiveDir}/{other_archive_file}', archiveDir = archiveDir, other_archive_file = otherArchiveFiles),
 #		expand('{archiveDir}/{zipped_archive_file}.pth',archiveDir = archiveDir, zipped_archive_file = [x.replace(".zip","") for x in zippedArchiveFiles]),
 #		[os.path.join('data_NHDPlus','NHDPlus{}'.format(vpuDict[subdomain]['DA']),'NHDPlus{}'.format(vpu),nhd_file) for subdomain in config['subdomainCodes'] for nhd_file in config['nhdFilesNeeded'] for vpu in vpuDict[subdomain]['vpu']]
@@ -190,3 +190,10 @@ rule compile_model_params:
     run:
         compile_catchment_params(os.path.join(archiveDir,"model",wildcards.thisModel),wildcards.thisModel, 'gwf0',config['paramsToExtract'],idxDict[wildcards.networkCode],input[0],output[0])
 
+rule aggregate_params:
+    input:
+        read_model_list
+    output:
+        '{procArchivDir}/MODFLOW_params_{networkCode}_{archiveCode}_{subdomainCode}.feather',
+    run:
+        aggregate_catchment_params(input.replace("CatchmentDischarge_","Model_Params_"),output[0], idxDict[wildcards.networkCode])
