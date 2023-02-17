@@ -161,7 +161,7 @@ rule compile_discharge:
     run:
         compile_catchment_discharge(input[0],idxDict[wildcards.networkCode],input[1],input[2],output[0])		
 
-def read_model_list(wildcards):
+def read_model_list_discharge(wildcards):
 	checkpoint_output = checkpoints.get_archive_model_list.get().output[0]
 	with open(checkpoint_output) as f:
 		model_list = [x[:-1] for x in f.readlines()]
@@ -171,12 +171,24 @@ def read_model_list(wildcards):
 	
 	input_list = expand('{outDir}/CompiledOutputs/CatchmentDischarge_{networkCode}_{modelList}.feather',outDir = procArchivDir, networkCode = config['networkCodes'],modelList = model_list)
 
-	return input_list	
+	return input_list
+	
+def read_model_list_params(wildcards):
+	checkpoint_output = checkpoints.get_archive_model_list.get().output[0]
+	with open(checkpoint_output) as f:
+		model_list = [x[:-1] for x in f.readlines()]
+		
+	#trim down the list of models to only those in the current subdomain
+	model_list = [x for x in model_list if x.startswith(wildcards.subdomainCode)]
+	
+	input_list = expand('{outDir}/CompiledOutputs/Model_Params_{networkCode}_{modelList}.feather',outDir = procArchivDir, networkCode = config['networkCodes'],modelList = model_list)
+
+	return input_list
 		
 
 rule aggregate_discharge:
     input:
-        read_model_list
+        read_model_list_discharge
     output:
         '{procArchivDir}/MODFLOW_Discharge_{networkCode}_{archiveCode}_{subdomainCode}.feather',
     run:
@@ -192,7 +204,7 @@ rule compile_model_params:
 
 rule aggregate_params:
     input:
-        read_model_list
+        read_model_list_params
     output:
         '{procArchivDir}/MODFLOW_params_{networkCode}_{archiveCode}_{subdomainCode}.feather',
     run:
